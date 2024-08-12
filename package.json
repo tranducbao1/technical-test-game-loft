@@ -1,0 +1,38 @@
+{
+  "name": "test-game-loft",
+  "version": "1.0.0",
+  "description": "test-game-loft",
+  "main": "index.js",
+  "keywords": [
+    "javascript",
+    "nodejs",
+    "express",
+    "postgres",
+    "prisma"
+  ],
+  "author": {
+    "name": "Tran Duc Bao"
+  },
+  "license": "TDB",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "postinstall": "prisma generate",
+    "prisma:g": "npx prisma generate",
+    "prisma:deploy": "npx prisma migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/client": "5.18.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "morgan": "^1.10.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "prettier": "^3.3.3",
+    "prisma": "^5.18.0"
+  }
+}
