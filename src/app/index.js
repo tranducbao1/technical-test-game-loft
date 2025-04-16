@@ -26,8 +26,8 @@ const calendarRouters = require('../modules/calendar/routes.js');
 const scheduleRouters = require('../modules/schedules/routes.js');
 
 // routes declaration
-app.use('/api/v1', calendarRouters);
-app.use('/api/v1', scheduleRouters);
+app.use('/api/v1/calendar', calendarRouters);
+app.use('/api/v1/schedules', scheduleRouters);
 
 // health check
 app.get('/health', (_req, res) => {
