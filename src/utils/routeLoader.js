@@ -1,19 +1,20 @@
 const fs = require('fs');
 const path = require('path');
 
-const loadRouters = (modulesPathRelative) => {
-    const modulesPath = path.resolve(__dirname, modulesPathRelative);
+const loadRouters = () => {
+    const modulesPath = path.join(__dirname, '../modules');
 
-    if (!fs.existsSync(modulesPath)) {
-        return [];
-    }
+    return fs.readdirSync(modulesPath).flatMap((moduleFolder) => {
+        const routeFolderPath = path.join(modulesPath, moduleFolder);
+        const routeFile = fs.readdirSync(routeFolderPath).find((file) => file.startsWith('routes'));
 
-    return fs.readdirSync(modulesPath).flatMap((moduleName) => {
-        const routerPath = path.join(modulesPath, moduleName, 'routes.js');
+        if (!routeFile) return;
 
-        if (fs.existsSync(routerPath)) {
-            const route = require(routerPath);
-            return Array.isArray(route) ? route : [route];
+        const routeFilePath = path.join(modulesPath, moduleFolder, routeFile);
+
+        // Check if router file exists before requiring
+        if (fs.existsSync(routeFilePath)) {
+            return require(routeFilePath);
         }
 
         return [];

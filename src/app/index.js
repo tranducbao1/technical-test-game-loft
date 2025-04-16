@@ -23,7 +23,7 @@ app.use(express.static('public'));
 app.use(cookieParser());
 
 // routes import
-const routers = loadRouters('../modules');
+const routers = loadRouters();
 
 // routes declaration
 app.use('/api/v1', routers);
