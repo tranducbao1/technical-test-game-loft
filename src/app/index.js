@@ -4,7 +4,6 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const CustomError = require('../utils/Error.js');
 const errorMiddleware = require('../middlewares/error.middleware.js');
-const loadRouters = require('../utils/routeLoader.js');
 
 // initializing the express application
 const app = express();
