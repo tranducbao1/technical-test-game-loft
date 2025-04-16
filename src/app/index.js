@@ -23,10 +23,12 @@ app.use(express.static('public'));
 app.use(cookieParser());
 
 // routes import
-const routers = loadRouters();
+const calendarRouters = require('../modules/calendar/routes.js');
+const scheduleRouters = require('../modules/schedules/routes.js');
 
 // routes declaration
-app.use('/api/v1', routers);
+app.use('/api/v1', calendarRouters);
+app.use('/api/v1', scheduleRouters);
 
 // health check
 app.get('/health', (_req, res) => {
