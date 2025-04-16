@@ -19,7 +19,8 @@
     "dev": "nodemon src/index.js",
     "postinstall": "prisma generate",
     "prisma:g": "npx prisma generate",
-    "prisma:deploy": "npx prisma migrate deploy"
+    "prisma:deploy": "npx prisma migrate deploy",
+    "prisma:m": "npx prisma migrate dev"
   },
   "dependencies": {
     "@prisma/client": "5.18.0",
@@ -28,7 +29,8 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "morgan": "^1.10.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "uuid": "11.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.4",

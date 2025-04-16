@@ -20,12 +20,16 @@ enum DayPart {
 }
 
 model CalendarDate {
-  id      String   @id(map: "pk_calendar_date") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
-  date    DateTime @map("date") @db.Timestamp()
-  weekday String   @map("weekday") @db.VarChar(256)
-  day     Int      @map("day") @db.Integer
-  month   Int      @map("month") @db.Integer
-  year    Int      @map("year") @db.Integer
+  id        String    @id(map: "pk_calendar_date") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  isDeleted Boolean   @default(false) @map("is_deleted") @db.Boolean
+  deletedAt DateTime? @map("deleted_at") @db.Timestamp()
+  date      DateTime  @map("date") @db.Timestamp()
+  weekday   String    @map("weekday") @db.VarChar(256)
+  day       Int       @map("day") @db.Integer
+  month     Int       @map("month") @db.Integer
+  year      Int       @map("year") @db.Integer
 
   // Relation
   schedules Schedule[]
@@ -35,14 +39,14 @@ model CalendarDate {
 }
 
 model Schedule {
-  id             String       @id(map: "pk_schedule") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
-  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamp()
-  updatedAt      DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
-  isDeleted      Boolean      @default(false) @map("is_deleted") @db.Boolean
-  deletedAt      DateTime?    @map("deleted_at") @db.Timestamp()
-  calendarDateId String       @map("calendar_date_id") @db.Uuid
+  id             String        @id(map: "pk_schedule") @default(dbgenerated("uuid_generate_v4()")) @map("id") @db.Uuid
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  isDeleted      Boolean       @default(false) @map("is_deleted") @db.Boolean
+  deletedAt      DateTime?     @map("deleted_at") @db.Timestamp()
+  calendarDateId String        @map("calendar_date_id") @db.Uuid
   part           DayPart
-  type           ScheduleType
+  type           ScheduleType?
 
   // Relation
   calendarDate CalendarDate @relation(fields: [calendarDateId], references: [id], onDelete: Cascade, map: "fk_schedule_calendar_date")

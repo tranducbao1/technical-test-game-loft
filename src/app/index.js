@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const CustomError = require('../utils/Error.js');
 const errorMiddleware = require('../middlewares/error.middleware.js');
+const loadRouters = require('../utils/routeLoader.js');
 
 // initializing the express application
 const app = express();
@@ -22,10 +23,10 @@ app.use(express.static('public'));
 app.use(cookieParser());
 
 // routes import
-const routesV1 = require('../v1/routes/index.js');
+const routers = loadRouters('./src/modules');
 
 // routes declaration
-app.use('/api/v1', routesV1);
+app.use('/api/v1', routers);
 
 // health check
 app.get('/health', (_req, res) => {
