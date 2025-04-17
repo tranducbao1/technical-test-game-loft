@@ -58,6 +58,7 @@ const ScheduleService = async () => {
           id: {
             in: data.map((item) => item.id),
           },
+          isDeleted: false
         },
         select: {
           id: true
@@ -96,8 +97,78 @@ const ScheduleService = async () => {
     }
   }
 
+  const repeatSchedule = async (body) => {
+    try {
+      const { startTime, endTime, numberOfWeeks, repeatFor, part } = body;
+
+      const sourceSchedules = await prisma.schedule.findMany({
+        where: {
+          isDeleted: false,
+          type: repeatFor,
+          calendarDate: {
+            date: {
+              gte: new Date(startTime),
+              lte: new Date(endTime),
+            },
+          },
+          part: part === 'FULL' ? 'FULL' : { in: ['AM', 'PM'] },
+        },
+        include: {
+          calendarDate: true,
+        },
+      });
+
+      const updates = [];
+
+      for (let i = 1; i <= numberOfWeeks; i++) {
+        const offsetDays = i * 7;
+
+        for (const schedule of sourceSchedules) {
+          const oldDate = new Date(schedule.calendarDate.date);
+          const newDate = new Date(oldDate);
+          newDate.setDate(oldDate.getDate() + offsetDays);
+
+          const calendar = await prisma.calendarDate.findUnique({
+            where: { date: newDate, isDeleted: false },
+          });
+
+          if (!calendar) continue;
+
+          const existingSchedule = await prisma.schedule.findFirst({
+            where: {
+              calendarDateId: calendar.id,
+              part: schedule.part,
+              isDeleted: false,
+            },
+          });
+
+          if (existingSchedule) {
+            updates.push(
+              prisma.schedule.update({
+                where: { id: existingSchedule.id },
+                data: {
+                  type: schedule.type,
+                },
+              })
+            );
+          }
+        }
+      }
+
+      await Promise.all(updates);
+
+    } catch (err) {
+      console.log(err);
+      CustomError.throwError({
+        status: 500,
+        message: 'Repeat Schedule failed',
+        errors: ['Error Repeat Schedule'],
+      });
+    }
+  }
+
   return {
-    getSchedules, updateSchedules
+    getSchedules, updateSchedules, repeatSchedule
   };
 }
 

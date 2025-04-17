@@ -2,6 +2,7 @@ const { asyncHandler } = require('../../utils/asyncHandler.js');
 const { ApiResponse } = require('../../utils/ApiResponse.js');
 const CustomError = require('../../utils/Error.js');
 const scheduleService = require('./services.js');
+const { validateRepeatPayload, validateUpdateSchedulesPayload } = require('./validator.js');
 
 const getSchedules = asyncHandler(async (req, res, next) => {
   try {
@@ -38,40 +39,7 @@ const updateSchedules = asyncHandler(async (req, res, next) => {
   try {
     const { data } = req.body;
 
-    if (!Array.isArray(data) || data.length === 0) {
-      const error = CustomError.badRequest({
-        message: 'Validation Error',
-        errors: ['Request body must be a non-empty array'],
-        hints: 'Provide an array of objects with id and type',
-      });
-
-      return next(error);
-    }
-
-    const errors = [];
-
-    data.forEach((item, index) => {
-      if (
-        typeof item !== 'object' ||
-        !item.hasOwnProperty('id') ||
-        !item.hasOwnProperty('type') ||
-        typeof item.id !== 'string' ||
-        typeof item.type !== 'string'
-      ) {
-        errors.push(`Item at index ${index} must have string 'id' and 'type'`);
-      }
-    });
-
-    if (errors.length > 0) {
-      const error =
-        CustomError.badRequest({
-          message: 'Validation Error',
-          errors,
-          hints: 'Each item in the array should be an object like { id: string, type: string }',
-        })
-
-      return next(error);
-    }
+    validateUpdateSchedulesPayload(data)
 
     const { updateSchedules } = await scheduleService();
 
@@ -90,4 +58,25 @@ const updateSchedules = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { getSchedules, updateSchedules };
+const repeatSchedule = asyncHandler(async (req, res, next) => {
+  try {
+    validateRepeatPayload(req.body)
+
+    const { repeatSchedule } = await scheduleService();
+
+    await repeatSchedule(req.body);
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, 'Repeat Schedule Successfully'));
+  } catch (err) {
+    console.log(err);
+    CustomError.throwError({
+      status: 500,
+      message: 'Repeat Schedule failed',
+      errors: ['Error Repeat Schedule'],
+    });
+  }
+});
+
+module.exports = { getSchedules, updateSchedules, repeatSchedule };
