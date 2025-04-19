@@ -104,7 +104,9 @@ const ScheduleService = async () => {
       const sourceSchedules = await prisma.schedule.findMany({
         where: {
           isDeleted: false,
-          type: repeatFor,
+          type: {
+            in: repeatFor,
+          },
           calendarDate: {
             date: {
               gte: new Date(startTime),
