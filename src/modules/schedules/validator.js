@@ -26,6 +26,7 @@ const validateRepeatPayload = (payload) => {
     }
 
     // Check repeatFor
+    const validRepeatFor = ['WFH', 'WAO'];
     if (
         !Array.isArray(repeatFor) ||
         repeatFor.length === 0 ||
