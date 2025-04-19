@@ -26,9 +26,12 @@ const validateRepeatPayload = (payload) => {
     }
 
     // Check repeatFor
-    const validRepeatFor = ['WFH', 'WAO'];
-    if (!validRepeatFor.includes(repeatFor)) {
-        errors.push('repeatFor must be one of: WFH, WAO');
+    if (
+        !Array.isArray(repeatFor) ||
+        repeatFor.length === 0 ||
+        repeatFor.some((val) => !validRepeatFor.includes(val))
+    ) {
+        errors.push('repeatFor must be one or more of: WFH, WAO');
     }
 
     // Check part
