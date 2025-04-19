@@ -135,7 +135,7 @@ const ScheduleService = async () => {
 
       const calendars = await prisma.calendarDate.findMany({
         where: {
-          date: { in: uniqueDates },
+          date: { in: uniqueDates.map((d) => new Date(d)) },
           isDeleted: false,
         },
       });
