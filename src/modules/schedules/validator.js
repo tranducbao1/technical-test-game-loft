@@ -64,9 +64,7 @@ const validateUpdateSchedulesPayload = (data) => {
         if (
             typeof item !== 'object' ||
             !item.hasOwnProperty('id') ||
-            !item.hasOwnProperty('type') ||
-            typeof item.id !== 'string' ||
-            typeof item.type !== 'string'
+            !item.hasOwnProperty('type')
         ) {
             errors.push(`Item at index ${index} must have string 'id' and 'type'`);
         }
