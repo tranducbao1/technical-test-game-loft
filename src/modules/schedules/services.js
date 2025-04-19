@@ -97,6 +97,108 @@ const ScheduleService = async () => {
     }
   }
 
+  // const repeatSchedule = async (body) => {
+  //   try {
+  //     const { startTime, endTime, numberOfWeeks, repeatFor, part } = body;
+
+  //     const sourceSchedules = await prisma.schedule.findMany({
+  //       where: {
+  //         isDeleted: false,
+  //         type: { in: repeatFor },
+  //         calendarDate: {
+  //           date: {
+  //             gte: new Date(startTime),
+  //             lte: new Date(endTime),
+  //           },
+  //         },
+  //         part: part === 'FULL' ? 'FULL' : { in: ['AM', 'PM'] },
+  //       },
+  //       include: {
+  //         calendarDate: true,
+  //       },
+  //     });
+
+  //     const allDatesToFind = sourceSchedules.flatMap((s) => {
+  //       const list = [];
+  //       const baseDate = new Date(s.calendarDate.date);
+
+  //       for (let i = 1; i <= numberOfWeeks; i++) {
+  //         const newDate = new Date(baseDate);
+  //         newDate.setDate(newDate.getDate() + i * 7);
+  //         list.push(newDate.toISOString().slice(0, 10));
+  //       }
+
+  //       return list;
+  //     });
+
+  //     const uniqueDates = [...new Set(allDatesToFind)];
+
+  //     const calendars = await prisma.calendarDate.findMany({
+  //       where: {
+  //         date: { in: uniqueDates.map((d) => new Date(d)) },
+  //         isDeleted: false,
+  //       },
+  //     });
+
+  //     const calendarMap = new Map(
+  //       calendars.map((c) => [c.date.toISOString().slice(0, 10), c.id]),
+  //     );
+
+  //     const allTargetSchedule = await prisma.schedule.findMany({
+  //       where: {
+  //         isDeleted: false,
+  //         calendarDateId: { in: calendars.map((c) => c.id) },
+  //         part: part === 'FULL' ? 'FULL' : { in: ['AM', 'PM'] },
+  //       },
+  //       select: {
+  //         id: true,
+  //         calendarDateId: true,
+  //         part: true,
+  //       },
+  //     });
+
+  //     const scheduleMap = new Map();
+  //     allTargetSchedule.forEach((s) => {
+  //       scheduleMap.set(`${s.calendarDateId}_${s.part}`, s.id);
+  //     });
+
+  //     const updates = [];
+
+  //     for (let i = 1; i <= numberOfWeeks; i++) {
+  //       for (const schedule of sourceSchedules) {
+  //         const oldDate = new Date(schedule.calendarDate.date);
+  //         oldDate.setDate(oldDate.getDate() + i * 7);
+  //         const dateKey = oldDate.toISOString().slice(0, 10);
+  //         const calendarId = calendarMap.get(dateKey);
+
+  //         if (!calendarId) continue;
+
+  //         const scheduleKey = `${calendarId}_${schedule.part}`;
+  //         const scheduleId = scheduleMap.get(scheduleKey);
+
+  //         if (scheduleId) {
+  //           updates.push(
+  //             prisma.schedule.update({
+  //               where: { id: scheduleId },
+  //               data: { type: schedule.type },
+  //             }),
+  //           );
+  //         }
+  //       }
+  //     }
+
+  //     await prisma.$transaction(updates);
+
+  //   } catch (err) {
+  //     console.log(err);
+  //     CustomError.throwError({
+  //       status: 500,
+  //       message: 'Repeat Schedule failed',
+  //       errors: ['Error Repeat Schedule'],
+  //     });
+  //   }
+  // };
+
   const repeatSchedule = async (body) => {
     try {
       const { startTime, endTime, numberOfWeeks, repeatFor, part } = body;
@@ -118,9 +220,9 @@ const ScheduleService = async () => {
         },
       });
 
-      const allDatesToFind = sourceSchedules.flatMap((s) => {
+      const promises = sourceSchedules.map(async (schedule) => {
         const list = [];
-        const baseDate = new Date(s.calendarDate.date);
+        const baseDate = new Date(schedule.calendarDate.date);
 
         for (let i = 1; i <= numberOfWeeks; i++) {
           const newDate = new Date(baseDate);
@@ -128,49 +230,41 @@ const ScheduleService = async () => {
           list.push(newDate.toISOString().slice(0, 10));
         }
 
-        return list;
-      });
+        const uniqueDates = [...new Set(list)];
 
-      const uniqueDates = [...new Set(allDatesToFind)];
+        const calendars = await prisma.calendarDate.findMany({
+          where: {
+            date: { in: uniqueDates.map((d) => new Date(d)) },
+            isDeleted: false,
+          },
+        });
 
-      const calendars = await prisma.calendarDate.findMany({
-        where: {
-          date: { in: uniqueDates.map((d) => new Date(d)) },
-          isDeleted: false,
-        },
-      });
+        const calendarMap = new Map(
+          calendars.map((c) => [c.date.toISOString().slice(0, 10), c.id]),
+        );
 
-      const calendarMap = new Map(
-        calendars.map((c) => [c.date.toISOString().slice(0, 10), c.id]),
-      );
+        const allTargetSchedule = await prisma.schedule.findMany({
+          where: {
+            isDeleted: false,
+            calendarDateId: { in: calendars.map((c) => c.id) },
+            part: part === 'FULL' ? 'FULL' : { in: ['AM', 'PM'] },
+          },
+          select: {
+            id: true,
+            calendarDateId: true,
+            part: true,
+          },
+        });
 
-      const allTargetSchedule = await prisma.schedule.findMany({
-        where: {
-          isDeleted: false,
-          calendarDateId: { in: calendars.map((c) => c.id) },
-          part: part === 'FULL' ? 'FULL' : { in: ['AM', 'PM'] },
-        },
-        select: {
-          id: true,
-          calendarDateId: true,
-          part: true,
-        },
-      });
+        const scheduleMap = new Map();
+        allTargetSchedule.forEach((s) => {
+          scheduleMap.set(`${s.calendarDateId}_${s.part}`, s.id);
+        });
 
-      const scheduleMap = new Map();
-      allTargetSchedule.forEach((s) => {
-        scheduleMap.set(`${s.calendarDateId}_${s.part}`, s.id);
-      });
+        const updates = [];
 
-      const updates = [];
-
-      for (let i = 1; i <= numberOfWeeks; i++) {
-        for (const schedule of sourceSchedules) {
-          const oldDate = new Date(schedule.calendarDate.date);
-          oldDate.setDate(oldDate.getDate() + i * 7);
-          const dateKey = oldDate.toISOString().slice(0, 10);
-          const calendarId = calendarMap.get(dateKey);
-
+        for (const newDate of uniqueDates) {
+          const calendarId = calendarMap.get(newDate);
           if (!calendarId) continue;
 
           const scheduleKey = `${calendarId}_${schedule.part}`;
@@ -185,10 +279,11 @@ const ScheduleService = async () => {
             );
           }
         }
-      }
 
-      await prisma.$transaction(updates);
+        await prisma.$transaction(updates);
+      });
 
+      await Promise.all(promises);
     } catch (err) {
       console.log(err);
       CustomError.throwError({
